@@ -9,13 +9,18 @@ if(ERRORLEVEL -eq 1)
   Write-Warning WARNING: "Saving installation log of failure at ${OLDLOGLOCATION}"
   Write-Warning WARNING: "Retrying installation with local context..."
   # @schtasks /create /f  /sc once /st 00:00:00 /tn chefclientbootstraptask /ru SYSTEM /rl HIGHEST /tr \"cmd /c #{command} & sleep 2 & waitfor /s %computername% /si chefclientinstalldone\"
+  $actions = (New-ScheduledTaskAction -Execute "$command"), (New-ScheduledTaskAction -Execute Start-Sleep 2)
+  $trigger = New-ScheduledTaskTrigger -Once -At '0:00 AM'
+  $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
+  $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger
+
   if(ERRORLEVEL -eq 1)
   {
     Write-Host "ERROR: Failed to create #{ChefUtils::Dist::Infra::PRODUCT} installation scheduled task with status code ${ERRORLEVEL} > "&2""
   }
   else { 
     Write-Host "Successfully created scheduled task to install #{ChefUtils::Dist::Infra::PRODUCT}."
-    # @schtasks /run /tn chefclientbootstraptask
+    Start-ScheduledTask -TaskName "chefclientbootstraptask"
   }
   if(ERRORLEVEL -eq 1)
   {
@@ -33,7 +38,7 @@ if(ERRORLEVEL -eq 1)
     else {
       Write-Host "Finished waiting for #{ChefUtils::Dist::Infra::PRODUCT} package to install."
     }
-    # @schtasks /delete /f /tn chefclientbootstraptask > NUL
+    Unregister-ScheduledTask -TaskName 'chefclientbootstraptask' -Confirm:$false
   }
 }
 else{ 
