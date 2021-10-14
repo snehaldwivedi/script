@@ -9,7 +9,8 @@ if(ERRORLEVEL -eq 1)
   Write-Warning WARNING: "Saving installation log of failure at ${OLDLOGLOCATION}"
   Write-Warning WARNING: "Retrying installation with local context..."
   # @schtasks /create /f  /sc once /st 00:00:00 /tn chefclientbootstraptask /ru SYSTEM /rl HIGHEST /tr \"cmd /c #{command} & sleep 2 & waitfor /s %computername% /si chefclientinstalldone\"
-  $actions = (New-ScheduledTaskAction -Execute "#(command}), (New-ScheduledTaskAction -Execute Start-Sleep 2)
+  $command = #{command}
+  $actions = (New-ScheduledTaskAction -Execute "$command"), (New-ScheduledTaskAction -Execute Start-Sleep 2)
   $trigger = New-ScheduledTaskTrigger -Once -At '0:00 AM'
   $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
   $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger
