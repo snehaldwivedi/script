@@ -13,7 +13,7 @@ if(ERRORLEVEL -eq 1)
   $actions = (New-ScheduledTaskAction -Execute "$command"), (New-ScheduledTaskAction -Execute Start-Sleep 2)
   $trigger = New-ScheduledTaskTrigger -Once -At '0:00 AM'
   $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
-  $task = New-ScheduledTask -Action $actions -Principal $principal -Trigger $trigger
+  $task = Register-ScheduledTask -TaskName "chefclientbootstraptask" -Trigger $trigger -Principal $principal -Action $actions
 
   if(ERRORLEVEL -eq 1)
   {
