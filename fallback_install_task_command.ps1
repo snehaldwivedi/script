@@ -10,10 +10,12 @@ if(ERRORLEVEL -eq 1)
   Write-Warning WARNING: "Retrying installation with local context..."
   # @schtasks /create /f  /sc once /st 00:00:00 /tn chefclientbootstraptask /ru SYSTEM /rl HIGHEST /tr \"cmd /c #{command} & sleep 2 & waitfor /s %computername% /si chefclientinstalldone\"
   $command = #{command}
+  New-Event -SourceIdentifier chefclientinstalldone -Sender $computername -MessageData "Test
   $actions = (New-ScheduledTaskAction -Execute "$command"), (New-ScheduledTaskAction -Execute Start-Sleep 2)
   $trigger = New-ScheduledTaskTrigger -Once -At '0:00 AM'
   $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
   $task = Register-ScheduledTask -TaskName "chefclientbootstraptask" -Trigger $trigger -Principal $principal -Action $actions
+  Wait-Event -SourceIdentifier chefclientinstalldone -Timeout 600
 
   if(ERRORLEVEL -eq 1)
   {
