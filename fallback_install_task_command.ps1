@@ -9,6 +9,7 @@ if(ERRORLEVEL -eq 1)
   Write-Warning WARNING: "Saving installation log of failure at ${OLDLOGLOCATION}"
   Write-Warning WARNING: "Retrying installation with local context..."
   # @schtasks /create /f  /sc once /st 00:00:00 /tn chefclientbootstraptask /ru SYSTEM /rl HIGHEST /tr \"cmd /c #{command} & sleep 2 & waitfor /s %computername% /si chefclientinstalldone\"
+  # command = msiexec /qn /log '%CHEF_CLIENT_MSI_LOG_PATH%' /i '%LOCAL_DESTINATION_MSI_PATH%'
   $command = #{command}
   New-Event -SourceIdentifier chefclientinstalldone -Sender $computername
   $actions = (New-ScheduledTaskAction -Execute "$command"), (New-ScheduledTaskAction -Execute Start-Sleep 2)
