@@ -1,5 +1,8 @@
-if($LASTEXITCODE -eq 1)
-{
+try{
+  $command = Start-Process msiexec.exe -Wait -ArgumentList '/qn /log C:\Users\ADMINI~1\AppData\Local\Temp\chef-client-msi29220.log /i C:\Users\ADMINI~1\AppData\Local\Temp\chef-client-latest.msi'
+  $command
+  Write-Host "Successfully installed #{ChefUtils::Dist::Infra::PRODUCT} package."
+} catch {
   Write-Warning "WARNING: Failed to install Chef Infra MSI package in remote context."
   Write-Warning "WARNING: This may be due to a defect in operating system update KB2918614: http://support.microsoft.com/kb/2918614"
 
@@ -11,7 +14,7 @@ if($LASTEXITCODE -eq 1)
 
   try {
     New-Event -SourceIdentifier chefclientinstalldone -Sender $computername
-    $actions = (New-ScheduledTaskAction -Execute #{command}), (New-ScheduledTaskAction -Execute Start-Sleep 2)
+    $actions = (New-ScheduledTaskAction -Execute $command), (New-ScheduledTaskAction -Execute Start-Sleep 2)
     $trigger = New-ScheduledTaskTrigger -Once -At '0:00 AM'
     $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
     $task = Register-ScheduledTask -TaskName "chefclientbootstraptask" -Trigger $trigger -Principal $principal -Action $actions
@@ -39,7 +42,4 @@ if($LASTEXITCODE -eq 1)
 
   Write-Host "Finished waiting for Chef Infra package to install."
   Unregister-ScheduledTask -TaskName 'chefclientbootstraptask' -Confirm:$false
-
-else{ 
-  Write-Host "Successfully installed #{ChefUtils::Dist::Infra::PRODUCT} package."
 }
